@@ -16,7 +16,6 @@ const string SEPARATORS = " .,;:!?-\"“”'‘’()[]{}+-*/=«»—–\n";
 //                             " word \n";
 
 const string TEXT = "one two three four five six seven eight nine ten";
-//const string TEXT_FRAGMENT = "one two three";
 
 const string PRONOUNS[]{"you", "she", "they", "your", "his", "him", "her", "hers", "its", "our", "ours", "their",
                         "theirs",
@@ -39,6 +38,7 @@ const int PRONOUNS_SIZE = 47;
 const int CONJUNCTIONS_SIZE = 31;
 const int PREPOSITIONS_SIZE = 21;
 const int INSPECTION_RANGE = 3;
+const string DIGITS = "0123456789";
 
 double antiPlagiarism(string text, string fragment);
 int countWordMatches(bool wordChecker[], int index);
@@ -58,64 +58,61 @@ list<string> removeDuplicates(list<string> strings);
 int main() {
     double result = 0.0;
     string fragment = "";
+    string choice = "";
 
-    cout << "Reference text is following: " << endl << endl;
-    cout << TEXT << endl << endl;
-    cout << "Enter fragment to compare: " << endl;
-    getline(cin, fragment);
-
-
-
-    cout << "Text to compare is following: " << endl << endl;
-    cout << fragment << endl << endl;
-    result = antiPlagiarism(TEXT, fragment);
-    cout << "Percentage of text matches is: " << result << "%" << endl;
-    /*
-    list<string> list = cleanTextAndGetStringsList(TEXT_TO_COMPARE);
-    int i = 0;
-    for (const auto &str: list) {
-        i++;
-        cout << i << "Word: " << str << endl;
-    }*/
+    int counter = 0;
+    while (true) {
+        if (counter > 0) {
+            cout << endl;
+        }
+        cout << "The reference text is following: " << endl << endl;
+        cout << TEXT << endl << endl;
+        cout << "Enter a fragment to compare: " << endl;
+        getline(cin, fragment);
+        result = antiPlagiarism(TEXT, fragment);
+        cout << endl << "Percentage of text matches is " << result << "%" << endl;
+        cout << "Do you want to continue? (yes/no)" << endl;
+        getline(cin, choice);
+        if (choice == "no") {
+            break;
+        } else {
+            choice.clear();
+            fragment.clear();
+            result = 0.0;
+            counter++;
+        }
+    }
     return 0;
 }
 
 double antiPlagiarism(string text, string fragment) {
     double rate = 0.0;
-    int wordMatchCounter = 0;
+    int wordMatchesCounter = 0;
     list<string> textList = cleanTextAndGetStringsList(text);
     list<string> fragmentList = cleanTextAndGetStringsList(fragment);
     string textArr[textList.size()];
     string fragmentArr[fragmentList.size()];
     bool wordChecker[fragmentList.size()];
-    // one two three Ezio Auditore witnesses turmoil and artistic brilliance
 
     convertListToArray(textList, textArr);
     convertListToArray(fragmentList, fragmentArr);
 
     for (int i = 0; i < textList.size(); ++i) {
         string tempText = buildStringToCompare(textArr, i);
-        //cout << tempText << " TEXT" << endl;
-
         for (int j = 0; j < fragmentList.size(); ++j) {
             string tempFragment = buildStringToCompare(fragmentArr, j);
-
-            //cout << tempFragment << " FRAGMENT" << endl;
             if (tempText == tempFragment) {
-                wordMatchCounter += countWordMatches(wordChecker, j);
-                //cout << "EQUALS " << wordMatchCounter << endl;
+                wordMatchesCounter += countWordMatches(wordChecker, j);
                 break;
             }
-
             if (fragmentList.size() == j + INSPECTION_RANGE)
                 break;
         }
 
-        if (textList.size() == i + INSPECTION_RANGE || wordMatchCounter == fragmentList.size())
+        if (textList.size() == i + INSPECTION_RANGE || wordMatchesCounter == fragmentList.size())
             break;
     }
-
-    rate = (double) wordMatchCounter / fragmentList.size() * 100;
+    rate = (double) wordMatchesCounter / fragmentList.size() * 100;
 
     return rate;
 }
@@ -129,6 +126,7 @@ int countWordMatches(bool wordChecker[], int index) {
             result++;
         }
     }
+
     return result;
 }
 
@@ -141,13 +139,6 @@ string buildStringToCompare(string words[], int index) {
 
     return result;
 }
-
-//void copyLastWordMatches(string fragment[], string lastMatches[], int index) {
-//    for (int i = 0; i < INSPECTION_RANGE; ++i) {
-//        lastMatches[i] = fragment[index + i];
-//        //cout << lastMatches[i] << endl;
-//    }
-//}
 
 void convertListToArray(list<string> list, string array[]) {
     int k = 0;
@@ -188,10 +179,8 @@ bool isPreposition(const string &word) {
 }
 
 bool isDigit(char currChar) {
-    char digits[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-    int size = 10;
-    for (int i = 0; i < size; ++i) {
-        if (currChar == digits[i]) {
+    for (int i = 0; DIGITS[i] != '\0'; ++i) {
+        if (currChar == DIGITS[i]) {
             return true;
         }
     }
@@ -248,6 +237,7 @@ string toLowerCase(string currString) {
             currString[i] = currString[i] + 32;
         }
     }
+
     return currString;
 }
 
@@ -308,8 +298,8 @@ list<string> cleanTextAndGetStringsList(string text) {
     string utilStr;
     string currStr;
     string delimitedWord;
-    bool delimitedWordFlag = false;
 
+    bool delimitedWordFlag = false;
     for (int i = 0; text[i] != '\0'; ++i) {
         if (i == text.size() - 1 && !isSeparator(text[i])) {
             utilStr = text[i];
