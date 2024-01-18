@@ -6,11 +6,17 @@ using namespace std;
 
 const string SEPARATORS = " .,;:!?-\"“”'‘’()[]{}+-*/=«»—–\n";
 
-const string TEXT_TO_COMPARE = "In 15.05.1476, Ezio Auditore witnesses his father's unjust execution, setting him on a quest for revenge. Uncovering a connection to the Assassins, Ezio navigates Renaissance Italy, encountering historical figures and unraveling a Templar plot for power.\n"
-                               "\n"
-                               "Honing his Assassin skills, Ezio discovers a conspiracy to control artifacts with world-altering potential. The narrative unfolds against the backdrop of political turmoil and artistic brilliance, leading to a climactic confrontation in 20.11.1499.\n"
-                               "\n"
-                               "The story explores themes of revenge, redemption, and the broader battle for freedom, leaving a lasting impact on the Assassins' legacy.";
+const string TEXT = "In 15.05.1476, Ezio Auditore witnesses his father's unjust execution, setting him on a quest for revenge. Uncovering a connection to the Assassins, Ezio navigates Renaissance Italy, encountering historical figures and unraveling a Templar plot for power.\n"
+                    "\n"
+                    "Honing his Assassin skills, Ezio discovers a conspiracy to control artifacts with world-altering potential. The narrative unfolds against the backdrop of political turmoil and artistic brilliance, leading to a climactic confrontation in 20.11.1499.\n"
+                    "\n"
+                    "The story explores themes of revenge, redemption, and the broader battle for freedom, leaving a lasting impact on the Assassins' legacy.";
+
+const string TEXT_FRAGMENT = "Honing his Assassin skills, Ezio discovers a conspiracy to control artifacts with world-altering potential. The narrative unfolds against the backdrop of political turmoil and artistic brilliance, leading to a climactic confrontation in 20.11.1499.\n"
+                             "\n";
+
+//const string TEXT = "one two three four five six seven eight nine ten";
+//const string TEXT_FRAGMENT = "two three cat five";
 
 const string PRONOUNS[]{"you", "she", "they", "your", "his", "him", "her", "hers", "its", "our", "ours", "their",
                         "theirs",
@@ -32,8 +38,13 @@ const string PREPOSITIONS[]{"since", "for", "over", "till", "until", "from", "du
 const int PRONOUNS_SIZE = 47;
 const int CONJUNCTIONS_SIZE = 31;
 const int PREPOSITIONS_SIZE = 21;
+const int INSPECTION_RANGE = 3;
 
 double antiPlagiarism(string text, string fragment);
+int countWordMatches(string fragment[], string lastMatches[], int index);
+void copyLastWordMatches(string fragment[], string lastMatches[], int index);
+void convertListToArray(list<string> list, string array[]);
+string buildStringToCompare(string words[], int index);
 list<string> cleanTextAndGetStringsList(string text);
 bool isSeparator(char currChar);
 string toLowerCase(string currString);
@@ -46,14 +57,98 @@ bool isNumberFromDate(const string &word);
 list<string> removeDuplicates(list<string> strings);
 
 int main() {
+    double result = 0.0;
+
+    cout << "Reference text is following: " << endl << endl;
+    cout << TEXT << endl << endl;
     cout << "Text to compare is following: " << endl << endl;
-    cout << TEXT_TO_COMPARE << endl << endl;
-    cout << "Text after cleaning is:" << endl << endl;
-    list<string> result = cleanTextAndGetStringsList(TEXT_TO_COMPARE);
-    for (const auto &str: result) {
-        cout << "Word: " << str << endl;
-    }
+    cout << TEXT_FRAGMENT << endl << endl;
+    result = antiPlagiarism(TEXT, TEXT_FRAGMENT);
+    cout << "Percentage of text matches is: " << result << "%" << endl;
+    /*
+    list<string> list = cleanTextAndGetStringsList(TEXT_TO_COMPARE);
+    int i = 0;
+    for (const auto &str: list) {
+        i++;
+        cout << i << "Word: " << str << endl;
+    }*/
     return 0;
+}
+
+double antiPlagiarism(string text, string fragment) {
+    double rate = 0.0;
+    int matchCounter = 0;
+    int wordMatchCounter = 0;
+    list<string> textList = cleanTextAndGetStringsList(text);
+    list<string> fragmentList = cleanTextAndGetStringsList(fragment);
+    string textArr[textList.size()];
+    string fragmentArr[fragmentList.size()];
+    string lastMatches[INSPECTION_RANGE] = {""};
+
+    convertListToArray(textList, textArr);
+    convertListToArray(fragmentList, fragmentArr);
+
+    for (int i = 0; i < textList.size(); ++i) {
+        string tempText = buildStringToCompare(textArr, i);
+
+        for (int j = matchCounter; j < fragmentList.size(); ++j) {
+            string tempFragment = buildStringToCompare(fragmentArr, j);
+
+            //cout <<tempFragment << endl;
+            if (tempText == tempFragment) {
+                wordMatchCounter  += countWordMatches(fragmentArr, lastMatches, j);
+                copyLastWordMatches(fragmentArr, lastMatches, j);
+                matchCounter++;
+                //cout << "EQUALS " << wordMatchCounter << endl;
+                break;
+            }
+
+            if (fragmentList.size() == j + INSPECTION_RANGE)
+                break;
+        }
+
+        if (textList.size() == i + INSPECTION_RANGE)
+            break;
+    }
+
+    rate = (double) wordMatchCounter / fragmentList.size() * 100;
+
+    return rate;
+}
+
+int countWordMatches(string fragment[], string lastMatches[], int index) {
+    int result = 0;
+
+    for (int i = 0; i < INSPECTION_RANGE; ++i) {
+        if (fragment[index + i] != lastMatches[i+1])
+            result++;
+    }
+    return result;
+}
+
+string buildStringToCompare(string words[], int index) {
+    string result = "";
+
+    for (int i = 0; i < INSPECTION_RANGE; ++i) {
+        result.append(words[index + i]);
+    }
+
+    return result;
+}
+
+void copyLastWordMatches(string fragment[], string lastMatches[], int index) {
+    for (int i = 0; i < INSPECTION_RANGE; ++i) {
+        lastMatches[i] = fragment[index + i];
+        //cout << lastMatches[i] << endl;
+    }
+}
+
+void convertListToArray(list<string> list, string array[]) {
+    int k = 0;
+
+    for (auto &i: list) {
+        array[k++] = i;
+    }
 }
 
 bool isPronoun(const string &word) {
@@ -255,13 +350,5 @@ list<string> cleanTextAndGetStringsList(string text) {
     }
 
     return removeDuplicates(resultList);
-}
-
-double antiPlagiarism(string text, string fragment) {
-    double rate = 0.0;
-
-    //do some code
-
-    return rate;
 }
 
