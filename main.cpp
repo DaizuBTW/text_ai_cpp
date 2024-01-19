@@ -15,7 +15,8 @@ const string SEPARATORS = " .,;:!?-\"“”'‘’()[]{}+-*/=«»—–\n";
 //const string TEXT_FRAGMENT = "Honing his Assassin skills, Ezio discovers a conspiracy to control artifacts with world-altering potential. The narrative unfolds against the backdrop of political turmoil and artistic brilliance, leading to a climactic confrontation in 20.11.1499.\n"
 //                             " word \n";
 
-const string TEXT = "one two three four five six seven eight nine ten";
+//const string TEXT = "one two three four five six seven eight nine ten";
+const string TEXT = "Ezio navigates Renaissance Italy, encountering historical figures and unraveling a Templar plot for power.";
 
 const string PRONOUNS[]{"you", "she", "they", "your", "his", "him", "her", "hers", "its", "our", "ours", "their",
                         "theirs",
@@ -54,18 +55,15 @@ bool isCleanWord(const string &word);
 bool isDigit(char currChar);
 bool isNumberFromDate(const string &word);
 list<string> removeDuplicates(list<string> strings);
+void setFalseToWordChecker(bool wordChecker[], int size);
 
 int main() {
     double result = 0.0;
     string fragment = "";
     string choice = "";
 
-    int counter = 0;
     while (true) {
-        if (counter > 0) {
-            cout << endl;
-        }
-        cout << "The reference text is following: " << endl << endl;
+        cout << endl << "The reference text is following: " << endl << endl;
         cout << TEXT << endl << endl;
         cout << "Enter a fragment to compare: " << endl;
         getline(cin, fragment);
@@ -79,10 +77,15 @@ int main() {
             choice.clear();
             fragment.clear();
             result = 0.0;
-            counter++;
         }
     }
     return 0;
+}
+
+void setFalseToWordChecker(bool wordChecker[], int size) {
+    for (int i = 0; i < size; ++i) {
+        wordChecker[i] = false;
+    }
 }
 
 double antiPlagiarism(string text, string fragment) {
@@ -90,10 +93,12 @@ double antiPlagiarism(string text, string fragment) {
     int wordMatchesCounter = 0;
     list<string> textList = cleanTextAndGetStringsList(text);
     list<string> fragmentList = cleanTextAndGetStringsList(fragment);
+
     string textArr[textList.size()];
     string fragmentArr[fragmentList.size()];
     bool wordChecker[fragmentList.size()];
 
+    setFalseToWordChecker(wordChecker, fragmentList.size());
     convertListToArray(textList, textArr);
     convertListToArray(fragmentList, fragmentArr);
 
@@ -304,8 +309,14 @@ list<string> cleanTextAndGetStringsList(string text) {
         if (i == text.size() - 1 && !isSeparator(text[i])) {
             utilStr = text[i];
             currStr.append(utilStr);
+            if (currStr.size() > 2) {
+                currStr = toLowerCase(currStr);
+                if (isCleanWord(currStr)) {
+                    resultList.push_back(currStr);
+                }
+            }
             utilStr.clear();
-            resultList.push_back(currStr);
+            currStr.clear();
             break;
         }
         if (delimitedWordFlag) {
